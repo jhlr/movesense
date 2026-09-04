@@ -1,0 +1,24 @@
+# Data
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Arduino/PlatformIO
+.pio/
+.vscode/
+*.hex
+
+# graphify (per global convention)
+graphify-out/
+
+# OS
+.DS_Store

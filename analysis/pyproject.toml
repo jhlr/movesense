@@ -1,0 +1,15 @@
+[project]
+name = "movesense"
+version = "0.1.0"
+description = "Pipeline de análise de sinal IMU bilateral — MoveSense"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "matplotlib",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
