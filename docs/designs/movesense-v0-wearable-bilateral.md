@@ -37,6 +37,34 @@ sem série temporal objetiva).
 não a plataforma completa de testes — mas dentro desse movimento, as 4 métricas completas
 juntas (ver Premissas).
 
+## Data Flow (Approach A)
+
+```
+  Nó LEFT (ESP32+MPU6050)          Nó RIGHT (ESP32+MPU6050)
+  ┌─────────────────────┐          ┌─────────────────────┐
+  │ MPU6050 @ 100Hz      │          │ MPU6050 @ 100Hz      │
+  │  → ImuSample         │          │  → ImuSample         │
+  │  {seq_num, ts, ax..gz}          │  {seq_num, ts, ax..gz}
+  │  29 bytes, MTU=247    │          │  29 bytes, MTU=247    │
+  └──────────┬───────────┘          └──────────┬───────────┘
+             │ BLE notify                       │ BLE notify
+             ▼                                  ▼
+        ┌──────────────────────────────────────────┐
+        │  Hub (Python, script) — v0: carimba        │
+        │  timestamp de CHEGADA por amostra           │
+        │  (não é sync real de clock — risco aberto)  │
+        └──────────────────┬───────────────────────┘
+                            ▼
+        ┌──────────────────────────────────────────┐
+        │  analysis/movesense/metrics.py             │
+        │  → ROM, tremor, velocidade, repetições,     │
+        │    assimetria (L vs R), fadiga              │
+        └──────────────────┬───────────────────────┘
+                            ▼
+                   Pamela valida clinicamente
+                (rubrica: plausível / não bate, por métrica)
+```
+
 ## Constraints
 
 - Hardware: ESP32 + MPU6050/9250 por nó (par bilateral), já escolhido e com firmware inicial
@@ -104,6 +132,23 @@ sintético/público e fechar as definições clínicas com a Pamela primeiro (re
 sem gastar tempo dela em algo não calibrado); depois construir o MVP bilateral real e testar
 com pacientes (o teste de demanda que importa); a arquitetura de hub/dashboard fica para
 depois que houver validação de valor, não antes.
+
+## Outside Voice — achados aceitos (eng review, 2026-09-03)
+
+- **ROM e fadiga não existem em código ainda** (`metrics.py` só tem tremor, pico de velocidade
+  e assimetria; `repetition_count` é stub). Approach B não pode declarar "as 4 métricas
+  calculadas corretamente" até ROM+fadiga+fusão de orientação serem implementados —
+  isso vira pré-requisito explícito de execução do Approach B, não trabalho adiado.
+- **Fusão trocada de Madgwick (quaternion completo) pra filtro complementar** — 1 grau de
+  liberdade (flexão de cotovelo) não justifica a versão completa; Madgwick fica como upgrade
+  natural quando o protocolo expandir pra movimentos multi-eixo.
+- **Calibração de bias de gyro por nó vira pré-requisito do Approach A** — LEFT e RIGHT são
+  sensores físicos diferentes com offsets diferentes; sem calibrar, `asymmetry_index` pode
+  estar medindo diferença de hardware, não de paciente. Rotina simples (sensor parado, média
+  do offset, subtrai antes de qualquer métrica) por sessão.
+- **Sync via hub (RTT ping-pong) mantido pro v0**, com ressalva registrada: a alternativa
+  nó-a-nó (ESP-NOW/fio) remove um caminho de latência não correlacionada e pode valer
+  investigar se o RTT via hub não performar bem na prática.
 
 ## Reviewer Concerns (não resolvidos nesta rodada)
 

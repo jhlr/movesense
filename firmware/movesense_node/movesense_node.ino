@@ -20,6 +20,8 @@
 
 // ---- Identidade do nó -------------------------------------------------
 // Trocar por bracelete: LEFT no nó esquerdo, RIGHT no nó direito.
+// gstack-shortcut(dec-af0824f6): hardcoded em vez de ler pino físico, mitigado
+// com identificador pintado no bracelete. Upgrade quando sair do protótipo de bancada.
 #define NODE_SIDE "LEFT"
 
 #define SERVICE_UUID        "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
@@ -32,8 +34,11 @@ Adafruit_MPU6050 mpu;
 BLECharacteristic *imuChar;
 bool deviceConnected = false;
 
-// Pacote binário: 4 bytes timestamp_ms + 6x float (ax,ay,az,gx,gy,gz) = 28 bytes
+// Pacote binário: 2 bytes seq_num + 4 bytes timestamp_ms + 6x float (ax,ay,az,gx,gy,gz) = 30 bytes
+// Requer MTU negociado acima do padrão de 23 bytes (ver setupBLE) — sem isso
+// o ESP32 BLE Arduino trunca notify() em 20 bytes de payload, silenciosamente.
 struct __attribute__((packed)) ImuSample {
+  uint16_t seq_num;    // incrementa a cada amostra, wrap em 65535 (~655s a 100Hz) — detecta gap de notify no hub
   uint32_t timestamp_ms;
   float ax, ay, az;   // m/s^2
   float gx, gy, gz;   // rad/s
@@ -45,9 +50,21 @@ class ServerCallbacks : public BLEServerCallbacks {
     deviceConnected = false;
     server->getAdvertising()->start(); // volta a anunciar após desconectar
   }
+  // setMTU() só pede a negociação — sem logar o valor real aceito pelo
+  // central, uma queda pro padrão de 23 bytes volta a truncar notify()
+  // silenciosamente (o mesmo bug que essa revisão corrigiu).
+  void onMtuChanged(BLEServer *server, esp_ble_gatts_cb_param_t *param) override {
+    Serial.printf("MTU negociado: %d bytes\n", param->mtu.mtu);
+  }
 };
 
+// gstack-shortcut(dec-b3253f71): negocia MTU pra cima em vez de encolher o
+// pacote ou fragmentar. Central (hub) precisa aceitar a negociação — se não
+// aceitar, notify() volta a truncar em 20 bytes silenciosamente.
+#define DESIRED_MTU 247
+
 void setupBLE() {
+  BLEDevice::setMTU(DESIRED_MTU);
   BLEDevice::init(String("MoveSense-") + NODE_SIDE);
   BLEServer *server = BLEDevice::createServer();
   server->setCallbacks(new ServerCallbacks());
@@ -64,10 +81,18 @@ void setupBLE() {
   server->getAdvertising()->start();
 }
 
+#define STATUS_LED_PIN 2  // LED onboard na maioria das devkits ESP32
+
 void setupIMU() {
   if (!mpu.begin()) {
     Serial.println("Falha ao inicializar o MPU6050 — checar fiação I2C (SDA/SCL) e endereço.");
-    while (true) delay(1000);
+    pinMode(STATUS_LED_PIN, OUTPUT);
+    while (true) {
+      digitalWrite(STATUS_LED_PIN, HIGH);
+      delay(200);
+      digitalWrite(STATUS_LED_PIN, LOW);
+      delay(200);
+    }
   }
   mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
   mpu.setGyroRange(MPU6050_RANGE_1000_DEG);
@@ -84,6 +109,7 @@ void setup() {
 
 void loop() {
   static uint32_t lastSample = 0;
+  static uint16_t seq = 0;
   uint32_t now = millis();
   if (now - lastSample < SAMPLE_PERIOD_MS) return;
   lastSample = now;
@@ -92,6 +118,7 @@ void loop() {
   mpu.getEvent(&accel, &gyro, &temp);
 
   ImuSample sample;
+  sample.seq_num = seq++;
   sample.timestamp_ms = now;
   sample.ax = accel.acceleration.x;
   sample.ay = accel.acceleration.y;

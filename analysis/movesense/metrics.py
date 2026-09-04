@@ -18,10 +18,14 @@ def sampling_rate_hz(df: pd.DataFrame) -> float:
     return 1000.0 / dt_ms
 
 
+def _gyro_magnitude(df: pd.DataFrame) -> pd.Series:
+    return np.sqrt(df["gx"] ** 2 + df["gy"] ** 2 + df["gz"] ** 2)
+
+
 def tremor_power(df: pd.DataFrame, band_hz: tuple[float, float] = (3.0, 12.0)) -> float:
     """Potência espectral do giroscópio na banda de tremor (padrão: 3-12Hz)."""
     fs = sampling_rate_hz(df)
-    gyro_mag = np.sqrt(df["gx"] ** 2 + df["gy"] ** 2 + df["gz"] ** 2)
+    gyro_mag = _gyro_magnitude(df)
     freqs = np.fft.rfftfreq(len(gyro_mag), d=1 / fs)
     spectrum = np.abs(np.fft.rfft(gyro_mag - gyro_mag.mean())) ** 2
     band_mask = (freqs >= band_hz[0]) & (freqs <= band_hz[1])
@@ -29,8 +33,7 @@ def tremor_power(df: pd.DataFrame, band_hz: tuple[float, float] = (3.0, 12.0)) -
 
 
 def peak_angular_velocity(df: pd.DataFrame) -> float:
-    gyro_mag = np.sqrt(df["gx"] ** 2 + df["gy"] ** 2 + df["gz"] ** 2)
-    return float(gyro_mag.max())
+    return float(_gyro_magnitude(df).max())
 
 
 def repetition_count(df: pd.DataFrame, axis: str = "gy", min_prominence: float = 0.5) -> int:
@@ -46,6 +49,9 @@ def asymmetry_index(metric_left: float, metric_right: float) -> float:
     """Índice de assimetria simétrico: (L-R) / ((L+R)/2), em %.
 
     Positivo = lado esquerdo maior; negativo = lado direito maior.
+    Assume metric_left e metric_right não-negativos (ROM, pico de velocidade,
+    potência de tremor — todas as métricas atuais são por construção). Com
+    valores de sinais opostos somando perto de zero, a fórmula degenera.
     """
     mean = (metric_left + metric_right) / 2
     if mean == 0:
