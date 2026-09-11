@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<title>MoveSense — apresentação</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/theme/black.css" id="theme">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-0:#0a0e1a; --bg-1:#0f1729; --bg-2:#172033;
+  --accent:#34d399; --accent-2:#22d3ee; --accent-3:#a78bfa;
+  --ink:#e6edf7; --ink-soft:#9aa6bd; --hi:#fbbf24;
+}
+html, body { background: var(--bg-0); }
+.reveal {
+  background:
+    radial-gradient(1200px 800px at 85% -10%, rgba(52,211,153,.18), transparent 60%),
+    radial-gradient(900px 700px at -10% 110%, rgba(34,211,238,.15), transparent 60%),
+    radial-gradient(700px 500px at 50% 50%, rgba(167,139,250,.08), transparent 70%),
+    linear-gradient(180deg, var(--bg-0), var(--bg-1));
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.reveal::before {
+  content:""; position:fixed; inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: 56px 56px;
+  pointer-events:none; z-index:0;
+}
+.reveal .slides { z-index:1; }
+
+.reveal h1, .reveal h2, .reveal h3 {
+  color:#fff; font-family:'Space Grotesk', sans-serif; font-weight:700;
+  letter-spacing:-0.03em; line-height:1.05;
+}
+.reveal h1 { font-size: 3.2em; }
+.reveal h2 { font-size: 2em; margin-bottom:0.55em; }
+.reveal h1 span, .reveal h2 span {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 60%, var(--accent-3) 100%);
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+}
+.reveal section { font-size: 26px; }
+.reveal p, .reveal li { color: var(--ink); }
+.reveal .small { font-size: 0.72em; color: var(--ink-soft); line-height:1.5; }
+
+.reveal .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; text-align:left; }
+.reveal .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; text-align:left; }
+.reveal .card {
+  background: linear-gradient(160deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+  border: 1px solid rgba(255,255,255,.08); border-radius: 14px;
+  padding: 16px 20px; position:relative; backdrop-filter: blur(10px);
+}
+.reveal .card::before {
+  content:""; position:absolute; left:0; top:14px; bottom:14px; width:3px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2)); border-radius:0 3px 3px 0;
+}
+.reveal .card strong {
+  display:block; margin-bottom:6px; color:#fff;
+  font-family:'Space Grotesk', sans-serif; font-weight:600;
+}
+.reveal .card.risk::before { background: linear-gradient(180deg, var(--hi), #f97316); }
+.reveal .card.risk strong { color: var(--hi); }
+
+.reveal .tag {
+  display:inline-block; padding:5px 12px; border-radius:999px;
+  background: rgba(52,211,153,.12); color: var(--accent);
+  font-size:0.48em; font-weight:600; font-family:'Space Grotesk', sans-serif;
+  letter-spacing:0.04em; text-transform:uppercase; border:1px solid rgba(52,211,153,.3);
+  margin: 3px 4px 3px 0;
+}
+.reveal .tag.amber { background: rgba(251,191,36,.12); color: var(--hi); border-color: rgba(251,191,36,.3); }
+
+.reveal .num {
+  display:inline-block; font-family:'Space Grotesk', sans-serif;
+  color: var(--accent); font-size:0.48em; font-weight:600;
+  letter-spacing:0.2em; margin-bottom:6px;
+}
+
+.reveal table { font-size: 0.62em; border-collapse: separate; border-spacing:0; width:100%; }
+.reveal th {
+  background: rgba(52,211,153,.12); color: var(--accent);
+  font-family:'Space Grotesk', sans-serif; text-transform:uppercase;
+  font-size:0.85em; letter-spacing:0.05em; padding:10px 14px; border:none;
+}
+.reveal td { padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.06); text-align:left; }
+
+.reveal code {
+  background: rgba(34,211,238,.12); color:#67e8f9; padding:2px 8px; border-radius:6px;
+  font-family:'JetBrains Mono', monospace; font-size:0.85em; border:1px solid rgba(34,211,238,.2);
+}
+.reveal pre {
+  background: linear-gradient(160deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+  border: 1px solid rgba(255,255,255,.08); border-radius: 14px; box-shadow: none;
+  font-family:'JetBrains Mono', monospace; color: var(--ink); font-size:0.55em;
+}
+.reveal ul { text-align:left; list-style:none; padding-left:0; }
+.reveal ul li { position:relative; padding-left:26px; margin-bottom:10px; line-height:1.5; }
+.reveal ul li::before {
+  content:""; position:absolute; left:0; top:0.5em; width:9px; height:9px; border-radius:3px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)); transform: rotate(45deg);
+}
+.reveal ul ul li::before { background: var(--ink-soft); width:6px; height:6px; }
+.reveal blockquote {
+  background: rgba(52,211,153,.06); border-left:3px solid var(--accent);
+  border-radius:0 12px 12px 0; padding:12px 20px; color:var(--ink); box-shadow:none;
+}
+
+.footer {
+  position:fixed; bottom:14px; left:26px; font-family:'Space Grotesk', sans-serif;
+  font-size:13px; color: var(--ink-soft); letter-spacing:0.08em; text-transform:uppercase;
+  display:flex; align-items:center; gap:10px; z-index:10;
+}
+.footer .dot { width:8px; height:8px; border-radius:50%; background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow:0 0 12px var(--accent); }
+.reveal .slide-number {
+  font-family:'Space Grotesk', sans-serif !important; background: rgba(255,255,255,.05) !important;
+  border:1px solid rgba(255,255,255,.1); border-radius:8px; padding:4px 10px !important; color: var(--ink-soft) !important;
+}
+
+.cover { text-align:left !important; }
+.cover h1 { font-size: 4.4em; margin-top:0.2em; }
+.cover .kicker {
+  font-family:'Space Grotesk', sans-serif; color: var(--accent); font-weight:600;
+  letter-spacing:0.14em; text-transform:uppercase; font-size:0.5em; margin-bottom:16px;
+}
+.cover .sub { font-family:'Space Grotesk', sans-serif; color: var(--ink-soft); font-weight:400; font-size:1.3em; margin-top:0.3em; }
+.cover .meta { margin-top:44px; font-size:0.65em; color:var(--ink-soft); border-top:1px solid rgba(255,255,255,.1); padding-top:16px; }
+
+pre.mono { white-space: pre; }
+
+/* anti-overflow */
+.reveal .slides > section.present{
+  box-sizing:border-box; height:100%;
+  display:flex!important; flex-direction:column; justify-content:center;
+  padding:20px 16px 44px;
+}
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<section class="cover">
+  <div class="kicker">◆ Wearable bilateral · Avaliação física</div>
+  <h1>Move<span>Sense</span>.</h1>
+  <p class="sub">Medindo os dois braços <strong style="color:var(--accent)">ao mesmo tempo</strong> — ROM, tremor, fadiga e assimetria, num par de sensores de baixo custo.</p>
+  <div class="meta">João · MoveSense · 2026-09-10</div>
+</section>
+
+<section>
+  <div class="num">01 — PROBLEMA</div>
+  <h2>O que existe <span>hoje</span></h2>
+  <div class="grid2">
+    <div class="card">
+      <strong>Goniômetro / observação visual</strong>
+      <p class="small">Subjetivo, um lado de cada vez, sem série temporal para acompanhar evolução do paciente entre sessões.</p>
+    </div>
+    <div class="card">
+      <strong>Sistemas de laboratório</strong>
+      <p class="small">Xsens, VALD, DorsaVi, Delsys: precisos, mas caros (US$1.500 a US$100k+) e fora do alcance da rotina clínica comum.</p>
+    </div>
+  </div>
+  <p class="small" style="margin-top:18px;">Nenhuma opção mede os dois braços <strong>simultaneamente</strong>, de forma objetiva e barata.</p>
+</section>
+
+<section>
+  <div class="num">02 — MERCADO</div>
+  <h2>Onde o MoveSense <span>se encaixa</span></h2>
+  <table>
+    <tr><th>Faixa</th><th>Exemplos</th><th>Preço</th></tr>
+    <tr><td>Brinquedo / animação</td><td>Notch</td><td>US$379–699</td></tr>
+    <tr><td>Acadêmico open-source</td><td>GonioPi, Romiumeter</td><td>custo de componentes</td></tr>
+    <tr><td><strong style="color:var(--hi)">Vácuo de mercado</strong></td><td><strong style="color:var(--hi)">— MoveSense —</strong></td><td>a definir</td></tr>
+    <tr><td>Assinatura clínica</td><td>DorsaVi, Kinvent</td><td>~US$1.490–2.700 + mensalidade</td></tr>
+    <tr><td>Lab / performance</td><td>VALD, Xsens, Delsys</td><td>US$12.000–100.000+</td></tr>
+  </table>
+  <p class="small" style="margin-top:16px;">18 produtos/empresas mapeados. Nenhum combina <strong>IMU bilateral simultâneo</strong> + assimetria + fadiga num wearable barato. Detalhe completo em <code>docs/2026-09-03-pesquisa-mercado-literatura.md</code>.</p>
+</section>
+
+<section>
+  <div class="num">03 — DIFERENCIAL</div>
+  <h2>Duas lacunas <span>reais</span></h2>
+  <div class="grid2">
+    <div class="card">
+      <strong>Adoção clínica de IMU é baixa</strong>
+      <p class="small">&lt;18% dos clínicos usam IMU rotineiramente (Springer, revisão de barreiras) — custo, setup longo e falta de treinamento. Evidência direta de espaço para um produto mais simples.</p>
+    </div>
+    <div class="card">
+      <strong>Fadiga por cinemática, sem EMG</strong>
+      <p class="small">Literatura mostra modelos de fadiga usando só features cinemáticas (MDPI Sensors, dataset Nature 2024) — mas nenhum concorrente comercial oferece isso como métrica direta. Delsys/Kinvent fazem fadiga via EMG (outra classe de custo).</p>
+    </div>
+  </div>
+  <p class="small" style="margin-top:16px; color:var(--hi);">Ressalva honesta: a lacuna de "concorrente direto" é ausência de achado na busca, não prova de ausência no mercado — falta busca de patentes e Scholar/PubMed direto.</p>
+</section>
+
+<section>
+  <div class="num">04 — ARQUITETURA</div>
+  <h2>Como funciona <span>(v0)</span></h2>
+  <pre class="mono">
+Nó LEFT (ESP32+MPU6050)          Nó RIGHT (ESP32+MPU6050)
+ MPU6050 @ 100Hz  → ImuSample     MPU6050 @ 100Hz  → ImuSample
+ {seq_num, ts, ax..gz}            {seq_num, ts, ax..gz}
+        │ BLE notify                     │ BLE notify
+        └───────────────┬─────────────────┘
+                         ▼
+        Hub (Python) — carimba timestamp de chegada
+                         ▼
+        analysis/movesense/metrics.py
+        → ROM, tremor, velocidade, repetições,
+          assimetria (L vs R), fadiga
+                         ▼
+              Pamela valida clinicamente
+  </pre>
+  <p class="small" style="margin-top:10px;">2 nós ESP32 + MPU6050 (par bilateral) · hub em Python via BLE · pipeline de análise em <code>analysis/movesense/</code>.</p>
+</section>
+
+<section>
+  <div class="num">05 — MÉTRICAS</div>
+  <h2>As <span>4 métricas</span> + cruzamento</h2>
+  <table>
+    <tr><th>Métrica</th><th>Fonte</th><th>Método</th></tr>
+    <tr><td>ROM</td><td>Accel+gyro fundidos</td><td>Filtro complementar → ângulo articular</td></tr>
+    <tr><td>Tremor</td><td>Giroscópio, 3–12Hz</td><td>Densidade espectral de potência (FFT)</td></tr>
+    <tr><td>Repetições</td><td>Giroscópio, eixo dominante</td><td>Detecção de picos</td></tr>
+    <tr><td>Assimetria trófica</td><td>ROM/amplitude L vs R</td><td>Índice simétrico (L-R)/média</td></tr>
+    <tr><td>Fadiga</td><td>Velocidade/tremor ao longo da série</td><td>Slope entre reps iniciais e finais</td></tr>
+  </table>
+  <p class="small" style="margin-top:14px;">Wedge estreito no <strong>protocolo</strong> (1 movimento — flexão de cotovelo), largo nas <strong>métricas</strong> (as 5 juntas desde a v0): compartilham a mesma fusão de sensor e o objetivo de artigo publicável exige o conjunto completo.</p>
+</section>
+
+<section>
+  <div class="num">06 — ONDE ESTAMOS</div>
+  <h2>Status <span>real</span> do código</h2>
+  <div class="grid2">
+    <div class="card">
+      <strong>Feito</strong>
+      <p class="small">Firmware ESP32+MPU6050 com <code>seq_num</code>, streaming BLE corrigido (truncamento resolvido). Tremor, pico de velocidade e assimetria implementados em <code>metrics.py</code>, com testes.</p>
+    </div>
+    <div class="card risk">
+      <strong>Falta / risco aberto</strong>
+      <p class="small">ROM e fadiga ainda não existem em código (<code>repetition_count</code> é stub). Sincronismo de clock entre os 2 nós não é medido — hoje só ordem de chegada no hub, não instante real. Calibração de bias de giroscópio por nó vira pré-requisito.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="num">07 — SEQUÊNCIA</div>
+  <h2>B → A → <span>C</span></h2>
+  <div class="grid3">
+    <div class="card">
+      <strong>B — Validar pipeline</strong>
+      <p class="small">Fechar ROM+fadiga no código, validar as 5 métricas contra dado sintético/PAMAP2, fechar definições clínicas com a Pamela por escrito.</p>
+    </div>
+    <div class="card">
+      <strong>A — MVP bilateral real</strong>
+      <p class="small">1 protocolo (cotovelo), par de braceletes, sessão real com paciente. Rubrica: plausível / não bate, por métrica.</p>
+    </div>
+    <div class="card">
+      <strong>C — Hub/dashboard</strong>
+      <p class="small">Sincronismo real, base de sessões, dashboard. Só depois de validar valor com a Pamela — não antes.</p>
+    </div>
+  </div>
+  <p class="small" style="margin-top:16px;">Escolhida deliberadamente nessa ordem: reduz risco técnico antes de gastar tempo da Pamela em algo não calibrado.</p>
+</section>
+
+<section>
+  <div class="num">08 — ASSIGNMENT</div>
+  <h2>O que fazer <span>esta semana</span></h2>
+  <ul>
+    <li>Implementar ROM e fadiga em <code>metrics.py</code> (hoje só tremor + pico de velocidade + assimetria)</li>
+    <li>Validar as 5 métricas contra dado sintético ou dataset público (PAMAP2 — canais de braço/antebraço)</li>
+    <li>Fechar com a Pamela, <strong>por escrito</strong>: movimentos do protocolo v0, corte de assimetria significativa, formato de fadiga (N reps vs tempo fixo), posição do bracelete</li>
+    <li>Registrar corte de "clinicamente plausível / não bate" por métrica na primeira sessão real</li>
+  </ul>
+</section>
+
+<section>
+  <div class="num">09 — RESUMO</div>
+  <h2>Em <span>uma frase</span></h2>
+  <blockquote>
+    Sem concorrente direto identificado que meça os dois braços ao mesmo tempo com custo baixo — mas o firmware roda, ROM e fadiga ainda faltam no código, e o passo desta semana é validar as 5 métricas antes de vestir o bracelete em paciente.
+  </blockquote>
+</section>
+
+</div></div>
+<div class="footer"><span class="dot"></span> MoveSense</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+<script>
+  Reveal.initialize({ hash:true, slideNumber:'c/t', transition:'slide', controls:true, progress:true, width:1280, height:720, margin:0.04, center:false });
+</script>
+</body>
+</html>
