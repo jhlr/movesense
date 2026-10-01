@@ -1,0 +1,4 @@
+flowchart LR
+    A["df bruto (gx, gy, gz)"] --> B["estimate_gyro_bias()"]
+    B --> C["(bias_x, bias_y, bias_z)"]
+    C -.->|"próximo passo, ainda não existe"| D["df corrigido"]

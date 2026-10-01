@@ -1,0 +1,11 @@
+flowchart TD
+    A["df bruto (ax,ay,az,gx,gy,gz)"] --> B["estimate_gyro_bias()"]
+    B --> C["apply_gyro_bias_correction()"]
+    A --> C
+    C --> D["complementary_filter()"]
+    D --> E["rom()"]
+    C --> F["tremor_power()"]
+    C --> G["repetition_count()"]
+    C --> H["fatigue_slope()"]
+    E --> I["asymmetry_index(L, R)"]
+    F --> I
