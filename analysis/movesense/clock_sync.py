@@ -15,8 +15,25 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import struct
+
 import numpy as np
 import pandas as pd
+
+# Formatos de fio do sync (espelham SyncPong em firmware/movesense_node), little-endian.
+PING_FORMAT = "<H"    # uint16 ping_id (hub -> nó, WRITE_NR)
+PONG_FORMAT = "<HI"   # uint16 ping_id, uint32 node_rx_ms (nó -> hub, NOTIFY)
+
+
+def build_ping(ping_id: int) -> bytes:
+    return struct.pack(PING_FORMAT, ping_id)
+
+
+def parse_pong(payload: bytes) -> tuple[int, int]:
+    """(ping_id, node_rx_ms). ValueError se o tamanho não bater (6 bytes)."""
+    if len(payload) != struct.calcsize(PONG_FORMAT):
+        raise ValueError(f"pong com {len(payload)} bytes, esperado {struct.calcsize(PONG_FORMAT)}")
+    return struct.unpack(PONG_FORMAT, payload)
 
 
 @dataclass(frozen=True)

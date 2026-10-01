@@ -76,3 +76,13 @@ def test_two_nodes_land_on_the_same_axis():
 def test_needs_at_least_two_pings():
     with pytest.raises(ValueError):
         estimate_clock_model([PingPong(0.0, 0.0, 4.0)])
+
+
+def test_ping_pong_wire_format_roundtrip():
+    from movesense.clock_sync import build_ping, parse_pong
+    import struct
+
+    assert build_ping(7) == b"\x07\x00"
+    assert parse_pong(struct.pack("<HI", 7, 123456)) == (7, 123456)
+    with pytest.raises(ValueError):
+        parse_pong(b"\x00\x00")

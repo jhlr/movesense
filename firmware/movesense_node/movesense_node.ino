@@ -26,13 +26,16 @@
 
 #define SERVICE_UUID        "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
 #define IMU_CHAR_UUID        "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
+#define SYNC_CHAR_UUID       "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
 
 #define SAMPLE_RATE_HZ 100
 #define SAMPLE_PERIOD_MS (1000 / SAMPLE_RATE_HZ)
 
 Adafruit_MPU6050 mpu;
 BLECharacteristic *imuChar;
-bool deviceConnected = false;
+BLECharacteristic *syncChar;
+// escrito no callback BLE, lido no loop() (tasks diferentes no ESP32)
+volatile bool deviceConnected = false;
 
 // Pacote binário: 2 bytes seq_num + 4 bytes timestamp_ms + 6x float (ax,ay,az,gx,gy,gz) = 30 bytes
 // Requer MTU negociado acima do padrão de 23 bytes (ver setupBLE) — sem isso
@@ -42,6 +45,27 @@ struct __attribute__((packed)) ImuSample {
   uint32_t timestamp_ms;
   float ax, ay, az;   // m/s^2
   float gx, gy, gz;   // rad/s
+};
+
+// Pong do sync de relógio: hub escreve [uint16 ping_id]; o nó responde por notify
+// [uint16 ping_id, uint32 node_rx_ms], com node_rx_ms = millis() capturado no
+// primeiro instante do callback. Formato espelhado em analysis/movesense/clock_sync.py.
+struct __attribute__((packed)) SyncPong {
+  uint16_t ping_id;
+  uint32_t node_rx_ms;
+};
+
+class SyncCallbacks : public BLECharacteristicCallbacks {
+  void onWrite(BLECharacteristic *characteristic) override {
+    uint32_t rx = millis();  // antes de qualquer outra coisa: é isso que o hub mede
+    String value = characteristic->getValue();
+    if (value.length() != sizeof(uint16_t)) return;
+    SyncPong pong;
+    memcpy(&pong.ping_id, value.c_str(), sizeof(uint16_t));
+    pong.node_rx_ms = rx;
+    syncChar->setValue((uint8_t *)&pong, sizeof(pong));
+    syncChar->notify();
+  }
 };
 
 class ServerCallbacks : public BLEServerCallbacks {
@@ -75,6 +99,13 @@ void setupBLE() {
       BLECharacteristic::PROPERTY_NOTIFY
   );
   imuChar->addDescriptor(new BLE2902());
+
+  syncChar = service->createCharacteristic(
+      SYNC_CHAR_UUID,
+      BLECharacteristic::PROPERTY_WRITE_NR | BLECharacteristic::PROPERTY_NOTIFY
+  );
+  syncChar->addDescriptor(new BLE2902());
+  syncChar->setCallbacks(new SyncCallbacks());
   service->start();
 
   server->getAdvertising()->addServiceUUID(SERVICE_UUID);
@@ -112,7 +143,10 @@ void loop() {
   static uint16_t seq = 0;
   uint32_t now = millis();
   if (now - lastSample < SAMPLE_PERIOD_MS) return;
-  lastSample = now;
+  // avança em passos fixos de período (sem perder a fase a cada iteração do loop);
+  // se atrasou mais de 1 período (I2C/BLE travou), ressincroniza em vez de rajada
+  lastSample += SAMPLE_PERIOD_MS;
+  if (now - lastSample >= SAMPLE_PERIOD_MS) lastSample = now;
 
   sensors_event_t accel, gyro, temp;
   mpu.getEvent(&accel, &gyro, &temp);
