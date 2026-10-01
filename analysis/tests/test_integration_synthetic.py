@@ -12,49 +12,51 @@ from __future__ import annotations
 
 import pytest
 
-from movesense.metrics import (
-    apply_gyro_bias_correction,
-    complementary_filter,
-    estimate_gyro_bias,
-    fatigue_slope,
-    repetition_count,
-    rom,
-    tremor_power,
-)
+from movesense.pipeline import analyze_session, bilateral_asymmetry
 from movesense.synthetic import generate_elbow_flexion_session
 
+# Mesmo código adaptativo, sessões bem diferentes: se a calibração só
+# funcionasse num ponto, a parametrização abaixo pegaria.
+SESSION_VARIANTS = [
+    {},
+    {"tremor_amplitude_deg_s": 8.0, "tremor_freq_hz": 9.0},
+    {"base_amplitude_deg": 40.0, "tremor_amplitude_deg_s": 1.0},
+    {"base_amplitude_deg": 120.0, "rep_duration_s": 2.5, "n_reps": 6},
+    {"rep_duration_s": 1.0, "n_reps": 8, "tremor_freq_hz": 5.0},
+]
 
-def test_full_pipeline_recovers_known_ground_truth():
+
+@pytest.mark.parametrize("variant", SESSION_VARIANTS, ids=lambda v: str(v) or "default")
+def test_pipeline_recovers_known_ground_truth(variant):
+    df, truth = generate_elbow_flexion_session(**variant)
+
+    result = analyze_session(df, rest_duration_s=truth.rest_duration_s)
+
+    assert result.rom_deg == pytest.approx(truth.base_amplitude_deg, rel=0.1)
+    assert result.n_reps == truth.n_reps
+    assert result.fatigue_slope < 0, "fadiga foi injetada (amplitude decaindo a cada rep)"
+
+    in_band = analyze_session(
+        df,
+        rest_duration_s=truth.rest_duration_s,
+        tremor_band_hz=(truth.tremor_freq_hz - 1.0, truth.tremor_freq_hz + 1.0),
+    ).tremor_power
+    out_of_band = analyze_session(
+        df, rest_duration_s=truth.rest_duration_s, tremor_band_hz=(20.0, 40.0)
+    ).tremor_power
+    assert in_band > out_of_band, "tremor devia se concentrar na banda injetada"
+
+
+def test_pipeline_warmup_window_still_counts_all_reps():
     df, truth = generate_elbow_flexion_session()
-    n_rest = int(round(truth.rest_duration_s * 100))
-    rest_df = df.iloc[:n_rest]
+    result = analyze_session(df, rest_duration_s=truth.rest_duration_s, warmup_s=6.0)
+    assert result.n_reps == truth.n_reps
 
-    bias = estimate_gyro_bias(rest_df)
-    corrected = apply_gyro_bias_correction(df, bias)
 
-    fused = complementary_filter(corrected)
-    assert rom(fused) == pytest.approx(truth.base_amplitude_deg, rel=0.1)
+def test_bilateral_asymmetry_detects_weaker_side():
+    left_df, truth = generate_elbow_flexion_session(base_amplitude_deg=90.0)
+    right_df, _ = generate_elbow_flexion_session(base_amplitude_deg=60.0)
+    left = analyze_session(left_df, rest_duration_s=truth.rest_duration_s)
+    right = analyze_session(right_df, rest_duration_s=truth.rest_duration_s)
 
-    # prominence acima de 2x a amplitude do tremor (2*3=6): o tremor sozinho,
-    # oscilando em torno de zero no repouso e nas transições entre reps,
-    # produz ondulações com prominence de até ~6 — abaixo disso, cada
-    # ondulação vira uma "repetição" falsa (achado real do teste de
-    # integração: min_prominence=5.0 sozinho não bastava, ver git log).
-    # distância mínima maior que 1 período de tremor (1/6Hz ~= 17 amostras a
-    # 100Hz) e menor que a duração de 1 repetição (150 amostras).
-    min_prominence = 8.0
-    min_distance_samples = 50
-
-    assert (
-        repetition_count(corrected, min_prominence=min_prominence, min_distance_samples=min_distance_samples)
-        == truth.n_reps
-    )
-
-    slope = fatigue_slope(corrected, min_prominence=min_prominence, min_distance_samples=min_distance_samples)
-    assert slope < 0, "fadiga foi injetada (amplitude decaindo a cada rep) — slope deveria ser negativo"
-
-    power_in_band = tremor_power(
-        corrected, band_hz=(truth.tremor_freq_hz - 1.0, truth.tremor_freq_hz + 1.0)
-    )
-    power_out_of_band = tremor_power(corrected, band_hz=(20.0, 40.0))
-    assert power_in_band > power_out_of_band, "tremor devia se concentrar na banda injetada, não em ruído genérico"
+    assert bilateral_asymmetry(left, right)["rom"] > 0

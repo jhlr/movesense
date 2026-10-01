@@ -5,17 +5,19 @@ import pandas as pd
 import pytest
 
 from movesense.metrics import (
-    _gyro_magnitude,
-    apply_gyro_bias_correction,
     asymmetry_index,
-    complementary_filter,
-    estimate_gyro_bias,
     fatigue_slope,
     peak_angular_velocity,
     repetition_count,
     rom,
-    sampling_rate_hz,
     tremor_power,
+)
+from movesense.signal import (
+    apply_gyro_bias_correction,
+    complementary_filter,
+    estimate_gyro_bias,
+    gyro_magnitude,
+    sampling_rate_hz,
 )
 
 
@@ -46,9 +48,9 @@ def test_sampling_rate_hz_irregular_uses_median():
     assert sampling_rate_hz(df) == pytest.approx(100.0)
 
 
-def test_gyro_magnitude_happy_path():
+def testgyro_magnitude_happy_path():
     df = _make_df([0, 10], gx=[3.0, 0.0], gy=[4.0, 0.0], gz=[0.0, 5.0])
-    result = _gyro_magnitude(df)
+    result = gyro_magnitude(df)
     assert result.iloc[0] == pytest.approx(5.0)
     assert result.iloc[1] == pytest.approx(5.0)
 
