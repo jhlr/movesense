@@ -1,0 +1,10 @@
+# Datasets de validação (degraus 7a/7b) — status 2026-10-01
+
+| Dataset | Papel | Acesso | Tamanho | Status |
+|---|---|---|---|---|
+| [IMU+VICON ombro (IEEE DataPort)](https://ieee-dataport.org/documents/imu-sensor-dataset-human-joint-pose-analysis) | 7a: ROM/ângulo vs mocap | Login IEEE DataPort | 47,7 MB | Bloqueado: precisa download manual (ou Chrome extension logada). VICON = posição de marcadores (ombro/cotovelo/punho), não ângulo → usar `validation.segment_angle_deg`. Taxa de amostragem não documentada na página; ler README. Licença não declarada. |
+| [Upper Limb Use Assessment (IEEE DataPort)](https://ieee-dataport.org/node/14989) | 7b: assimetria real (5 hemiparéticos, 10 saudáveis, 2 pulseiras) | Login IEEE DataPort | ~173 MB | Bloqueado, mesmo motivo. Melhor candidato a assimetria real. Licença/taxa não declaradas. |
+| [StrengthSense (Zenodo)](https://doi.org/10.5281/zenodo.17424677) | 7b alternativo: assimetria bilateral em saudáveis | Aberto (metadado CC-BY-4.0) | 592 MB | **Não baixado.** O DUA anexo restringe uso a pesquisa na Europa, não comercial, sem redistribuição; contradiz o metadado CC-BY. Contato: zeyu.yang@aalto.fi. |
+| [Smartwatch IMU (Mendeley)](https://data.mendeley.com/datasets/s86tdtmcc2) | 7b fraco | Aberto, CC BY 4.0 | 604 MB | Descartado: só splits z-score/features publicados, a pasta `raw/` do README não está na listagem (v1 e v2), 3 sujeitos, 20 Hz, sem mocap. |
+
+Próximo passo: baixar os dois datasets IEEE em `data/raw/shoulder_imu_vicon/` e `data/raw/upper_limb_use/`, escrever loaders (alinhamento temporal fica no loader, ver `validation.py`) e rodar `validate_angle` sobre o ângulo fundido.
