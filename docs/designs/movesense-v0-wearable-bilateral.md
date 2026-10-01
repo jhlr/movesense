@@ -45,7 +45,7 @@ juntas (ver Premissas).
   │ MPU6050 @ 100Hz      │          │ MPU6050 @ 100Hz      │
   │  → ImuSample         │          │  → ImuSample         │
   │  {seq_num, ts, ax..gz}          │  {seq_num, ts, ax..gz}
-  │  29 bytes, MTU=247    │          │  29 bytes, MTU=247    │
+  │  30 bytes, MTU=247    │          │  30 bytes, MTU=247    │
   └──────────┬───────────┘          └──────────┬───────────┘
              │ BLE notify                       │ BLE notify
              ▼                                  ▼
