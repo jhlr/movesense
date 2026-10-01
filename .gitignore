@@ -22,3 +22,6 @@ graphify-out/
 
 # OS
 .DS_Store
+
+# Playwright MCP scratch
+.playwright-mcp/
