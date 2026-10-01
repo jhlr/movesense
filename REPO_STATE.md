@@ -12,11 +12,11 @@ goal_type: build
 - [x] 4. `repetition_count()` real via scipy.signal.find_peaks (hoje é NotImplementedError). delegated (level 6).
 - [x] 5. `fatigue_slope()` — degradação de pico de velocidade/tremor entre reps iniciais e finais de uma série. delegated (level 6).
 - [x] 6. gerar dado sintético (accel+gyro simulando flexão de cotovelo com tremor e fadiga controlados) pra testar as funções novas. delegated (level 6).
-- [ ] 7a. carregar o dataset IMU+VICON de ombro (IEEE DataPort) — validar `complementary_filter()`/`rom()` contra o ângulo real medido por mocap, não só sanity check  <- current degrau
-- [ ] 7b. carregar o StrengthSense (IMU bilateral, braço/antebraço) — validar `asymmetry_index()` com dado bilateral real, não sintético
-- [ ] 8. rodar as 5 métricas sobre os dois datasets (cada um no que é mais forte: 7a pra ROM/ângulo, 7b pra assimetria), registrar se os valores são plausíveis — 8a é rigor real (contra VICON), 8b é sanity check (StrengthSense não tem ground truth de ângulo)
-- [ ] 9. testes automatizados (pytest, seguindo o padrão de test_metrics.py) pras funções novas: calibração, fusão, ROM, fadiga, repetições
-- [ ] 10. relatório curto: quais das 5 métricas ficaram "calculadas corretamente" — separar o que foi validado com rigor (ROM contra VICON) do que foi só sanity check (resto) — critério de sucesso do Approach B
+- [~] 7a. PULADO (dataset pago). carregar o dataset IMU+VICON de ombro (IEEE DataPort) — validar `complementary_filter()`/`rom()` contra o ângulo real medido por mocap, não só sanity check
+- [~] 7b. PULADO (dataset restrito/pago). carregar o StrengthSense (IMU bilateral, braço/antebraço) — validar `asymmetry_index()` com dado bilateral real, não sintético
+- [~] 8. N/A sem os datasets reais. rodar as 5 métricas sobre os dois datasets (cada um no que é mais forte: 7a pra ROM/ângulo, 7b pra assimetria), registrar se os valores são plausíveis — 8a é rigor real (contra VICON), 8b é sanity check (StrengthSense não tem ground truth de ângulo)
+- [x] 9. testes automatizados (pytest, seguindo o padrão de test_metrics.py) pras funções novas: calibração, fusão, ROM, fadiga, repetições
+- [x] 10. (docs/2026-10-01-approach-b-relatorio.md) relatório curto: quais das 5 métricas ficaram "calculadas corretamente" — separar o que foi validado com rigor (ROM contra VICON) do que foi só sanity check (resto) — critério de sucesso do Approach B
 - [ ] 11. fechar com a Pamela as 5 perguntas em aberto do protocolo (docs/2026-09-03-protocolo-avaliacao-draft.md) — não é código, é entrada clínica necessária antes do Approach A
 
 ## Goal history
