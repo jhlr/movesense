@@ -19,10 +19,21 @@
 #include <BLE2902.h>
 
 // ---- Identidade do nó -------------------------------------------------
-// Trocar por bracelete: LEFT no nó esquerdo, RIGHT no nó direito.
-// gstack-shortcut(dec-af0824f6): hardcoded em vez de ler pino físico, mitigado
-// com identificador pintado no bracelete. Upgrade quando sair do protótipo de bancada.
-#define NODE_SIDE "LEFT"
+// Escolhido na gravação, sem editar o código (ver firmware/README.md):
+//   arduino-cli compile ... --build-property compiler.cpp.extra_flags=-DNODE_SIDE=RIGHT
+// gstack-shortcut(dec-af0824f6): lado definido na gravação em vez de ler pino físico,
+// mitigado com identificador pintado no bracelete. Upgrade quando sair do protótipo de bancada.
+#ifndef NODE_SIDE
+#define NODE_SIDE LEFT
+#endif
+#define STR_(x) #x
+#define STR(x) STR_(x)
+#define NODE_SIDE_STR STR(NODE_SIDE)
+
+// I2C do MPU6050 (pinos padrão da maioria das devkits ESP32)
+#define I2C_SDA_PIN 21
+#define I2C_SCL_PIN 22
+#define I2C_CLOCK_HZ 400000
 
 #define SERVICE_UUID        "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
 #define IMU_CHAR_UUID        "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
@@ -89,7 +100,7 @@ class ServerCallbacks : public BLEServerCallbacks {
 
 void setupBLE() {
   BLEDevice::setMTU(DESIRED_MTU);
-  BLEDevice::init(String("MoveSense-") + NODE_SIDE);
+  BLEDevice::init(String("MoveSense-") + NODE_SIDE_STR);
   BLEServer *server = BLEDevice::createServer();
   server->setCallbacks(new ServerCallbacks());
 
@@ -132,10 +143,10 @@ void setupIMU() {
 
 void setup() {
   Serial.begin(115200);
-  Wire.begin();
+  Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN, I2C_CLOCK_HZ);
   setupIMU();
   setupBLE();
-  Serial.printf("MoveSense node [%s] pronto.\n", NODE_SIDE);
+  Serial.printf("MoveSense node [%s] pronto.\n", NODE_SIDE_STR);
 }
 
 void loop() {

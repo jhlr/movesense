@@ -1,0 +1,179 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>MoveSense — Relatório de Status</title>
+<style>
+@page{size:A4;margin:0}
+:root{--ink:#0f172a;--mut:#64748b;--blue:#2563eb;--teal:#0d9488;--org:#f97316;--pur:#7c3aed;--red:#dc2626;--grn:#16a34a;--bg:#f8fafc}
+*{box-sizing:border-box}body{margin:0;font:10.5pt/1.45 -apple-system,"Helvetica Neue",Arial,sans-serif;color:var(--ink)}
+.page{width:210mm;height:297mm;padding:16mm 15mm;page-break-after:always;overflow:hidden;position:relative}
+.cover{background:linear-gradient(135deg,#1e3a8a,#7c3aed 60%,#f97316);color:#fff;display:flex;flex-direction:column;justify-content:center}
+.cover h1{font-size:44pt;margin:0 0 6px;letter-spacing:-1px}.cover p{font-size:14pt;opacity:.92;max-width:150mm}
+.pill{display:inline-block;padding:3px 11px;border-radius:99px;font-size:9pt;font-weight:600;color:#fff}
+h2{font-size:19pt;margin:0 0 4px;color:var(--blue)}h2+.sub{color:var(--mut);margin:0 0 12px}
+h3{font-size:12pt;margin:14px 0 6px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.kpi{border-radius:10px;padding:10px 12px;color:#fff}.kpi b{display:block;font-size:22pt;line-height:1}.kpi span{font-size:8.5pt;opacity:.95}
+table{border-collapse:collapse;width:100%;font-size:9pt;margin:6px 0}
+th{background:var(--ink);color:#fff;text-align:left;padding:5px 7px}td{padding:5px 7px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+tr:nth-child(even) td{background:var(--bg)}
+.ok{color:var(--grn);font-weight:700}.warn{color:var(--org);font-weight:700}.bad{color:var(--red);font-weight:700}
+.box{border-left:5px solid var(--blue);background:#eff6ff;padding:8px 12px;border-radius:0 8px 8px 0;margin:8px 0;font-size:9.5pt}
+.box.o{border-color:var(--org);background:#fff7ed}.box.g{border-color:var(--grn);background:#f0fdf4}.box.r{border-color:var(--red);background:#fef2f2}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}svg{max-width:100%}
+.foot{position:absolute;bottom:8mm;left:15mm;right:15mm;font-size:8pt;color:var(--mut);display:flex;justify-content:space-between}
+ol,ul{margin:4px 0;padding-left:18px}li{margin:2px 0}
+</style></head><body>
+
+<!-- CAPA -->
+<div class="page cover">
+<div style="font-size:11pt;letter-spacing:3px;opacity:.85">RELATÓRIO DE STATUS · 22/OUT/2026</div>
+<h1>MoveSense</h1>
+<p>Par de braceletes com acelerômetro e giroscópio que mede os <b>dois braços ao mesmo tempo</b>: amplitude, tremor, repetições, fadiga e assimetria. O que já temos, o que falta e o que depende de quem.</p>
+<div style="margin-top:28px;display:flex;gap:8px;flex-wrap:wrap"><span class="pill" style="background:#ffffff33">51 testes passando</span><span class="pill" style="background:#ffffff33">5 métricas implementadas</span><span class="pill" style="background:#ffffff33">0 sessões reais</span><span class="pill" style="background:#ffffff33">repo público no GitHub</span></div>
+</div>
+
+<!-- 1 RESUMO -->
+<div class="page"><h2>1. Resumo em 1 minuto</h2><p class="sub">Onde estamos hoje</p>
+<div class="kpis">
+<div class="kpi" style="background:var(--blue)"><b>5/5</b><span>métricas com código e teste</span></div>
+<div class="kpi" style="background:var(--teal)"><b>51</b><span>testes automatizados verdes</span></div>
+<div class="kpi" style="background:var(--org)"><b>0</b><span>testes em hardware ou paciente</span></div>
+<div class="kpi" style="background:var(--pur)"><b>1</b><span>bloqueio clínico (Pamela)</span></div></div>
+<div class="box g"><b>Pronto:</b> todo o software de análise (calibração, fusão, ROM, repetições, fadiga, tremor, assimetria), a ingestão dos pacotes BLE e o sincronismo de relógio entre os dois nós. Tudo validado com sinal <b>simulado</b>.</div>
+<div class="box o"><b>Falta:</b> compilar e rodar o firmware em hardware real, fechar o protocolo clínico com a Pamela e fazer a primeira captura bilateral real. É daí que sai a validação de verdade.</div>
+<div class="box r"><b>Honestidade importante:</b> nenhuma métrica foi validada contra dado real ou mocap. Os datasets públicos que planejávamos usar são pagos ou restritos. A validação real passa a depender da nossa própria captura.</div>
+<h3>Problema que resolvemos</h3>
+<p>Hoje a avaliação é com goniômetro e observação visual: subjetiva, um lado por vez. Os sistemas bons (Xsens, VALD, Delsys) custam de milhares a mais de US$100 mil. Não existe nada barato que meça os dois braços simultaneamente.</p>
+<h3>Quem faz o quê</h3>
+<table><tr><th>Pessoa</th><th>Papel</th></tr><tr><td>João</td><td>Firmware (C/Arduino), pipeline Python, ML</td></tr><tr><td>Pamela (educadora física)</td><td>Protocolo clínico, validação das métricas, uso em pacientes reais</td></tr></table>
+<div class="foot"><span>MoveSense · status 22/10/2026</span><span>2</span></div></div>
+
+<!-- 2 ARQUITETURA -->
+<div class="page"><h2>2. Como funciona</h2><p class="sub">Do sensor no braço até a métrica</p>
+<svg viewBox="0 0 700 330" width="100%" font-family="Helvetica,Arial" font-size="12">
+<defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0L8,4L0,8z" fill="#475569"/></marker></defs>
+<rect x="10" y="20" width="150" height="70" rx="12" fill="#2563eb"/><text x="85" y="50" fill="#fff" text-anchor="middle" font-weight="700">Nó ESQUERDO</text><text x="85" y="68" fill="#fff" text-anchor="middle" font-size="10">ESP32 + MPU6050 · 100 Hz</text>
+<rect x="10" y="130" width="150" height="70" rx="12" fill="#f97316"/><text x="85" y="160" fill="#fff" text-anchor="middle" font-weight="700">Nó DIREITO</text><text x="85" y="178" fill="#fff" text-anchor="middle" font-size="10">ESP32 + MPU6050 · 100 Hz</text>
+<rect x="215" y="55" width="150" height="110" rx="12" fill="#0d9488"/><text x="290" y="88" fill="#fff" text-anchor="middle" font-weight="700">HUB (Python)</text><text x="290" y="108" fill="#fff" text-anchor="middle" font-size="10">recebe BLE dos 2 nós</text><text x="290" y="124" fill="#fff" text-anchor="middle" font-size="10">sync de relógio (ping-pong)</text><text x="290" y="140" fill="#fff" text-anchor="middle" font-size="10">detecta perda de pacote</text>
+<rect x="420" y="55" width="130" height="110" rx="12" fill="#7c3aed"/><text x="485" y="88" fill="#fff" text-anchor="middle" font-weight="700">ANÁLISE</text><text x="485" y="108" fill="#fff" text-anchor="middle" font-size="10">bias → fusão → reps</text><text x="485" y="124" fill="#fff" text-anchor="middle" font-size="10">→ 5 métricas por lado</text>
+<rect x="590" y="55" width="100" height="110" rx="12" fill="#16a34a"/><text x="640" y="95" fill="#fff" text-anchor="middle" font-weight="700">Pamela</text><text x="640" y="113" fill="#fff" text-anchor="middle" font-size="10">valida: "plausível"</text><text x="640" y="127" fill="#fff" text-anchor="middle" font-size="10">ou "não bate"</text>
+<path d="M160 55L215 85" stroke="#475569" stroke-width="2" marker-end="url(#a)" fill="none"/><path d="M160 165L215 135" stroke="#475569" stroke-width="2" marker-end="url(#a)" fill="none"/>
+<path d="M365 110L420 110" stroke="#475569" stroke-width="2" marker-end="url(#a)" fill="none"/><path d="M550 110L590 110" stroke="#475569" stroke-width="2" marker-end="url(#a)" fill="none"/>
+<text x="185" y="62" font-size="10" fill="#475569">BLE</text><text x="185" y="160" font-size="10" fill="#475569">BLE</text>
+<text x="10" y="250" font-weight="700" font-size="13">Pacote por amostra (30 bytes)</text>
+<rect x="10" y="262" width="60" height="30" fill="#e2e8f0"/><text x="40" y="282" text-anchor="middle" font-size="10">seq (2B)</text>
+<rect x="70" y="262" width="90" height="30" fill="#cbd5e1"/><text x="115" y="282" text-anchor="middle" font-size="10">timestamp (4B)</text>
+<rect x="160" y="262" width="180" height="30" fill="#bfdbfe"/><text x="250" y="282" text-anchor="middle" font-size="10">ax ay az (12B)</text>
+<rect x="340" y="262" width="180" height="30" fill="#fed7aa"/><text x="430" y="282" text-anchor="middle" font-size="10">gx gy gz (12B, rad/s)</text>
+<text x="10" y="312" font-size="10" fill="#475569">seq detecta perda de pacote; timestamp alimenta o sync de relógio.</text></svg>
+<h3>Pipeline de análise (4 camadas, cada uma só importa as de baixo)</h3>
+<table><tr><th>Camada</th><th>Arquivo</th><th>O que faz</th></tr>
+<tr><td>1</td><td>signal.py</td><td>bias do giroscópio, correção, filtro complementar (acel + giro → ângulo)</td></tr>
+<tr><td>2</td><td>reps.py</td><td>detecção de repetições, calibração adaptativa dos limiares</td></tr>
+<tr><td>3</td><td>metrics.py</td><td>ROM, contagem, fadiga, tremor, assimetria</td></tr>
+<tr><td>4</td><td>pipeline.py</td><td>dono do ciclo: <code>analyze_session</code> e <code>bilateral_asymmetry</code></td></tr>
+<tr><td>+</td><td>capture.py, clock_sync.py, validation.py</td><td>ingestão BLE, sync por RTT, comparação com referência</td></tr></table>
+<div class="foot"><span>MoveSense · status 22/10/2026</span><span>3</span></div></div>
+
+<!-- 3 METRICAS -->
+<div class="page"><h2>3. As 5 métricas e o grau de validação</h2><p class="sub">Verde = verificado em sinal simulado. Nenhuma foi verificada em dado real.</p>
+<table><tr><th>Métrica</th><th>O que mede</th><th>Verificado (simulado)</th><th>Ainda NÃO verificado</th></tr>
+<tr><td><b>ROM</b></td><td>Amplitude do movimento (°)</td><td class="ok">Dentro de 10% do injetado; erro &lt; 5° vs trajetória exata</td><td>Montagem real do sensor, aceleração linear, mocap</td></tr>
+<tr><td><b>Repetições</b></td><td>Quantos ciclos</td><td class="ok">Contagem exata em 5 variantes (tremor forte, rápida, lenta...)</td><td>Movimento real irregular; limiares são defaults de design</td></tr>
+<tr><td><b>Fadiga</b></td><td>Queda do pico ao longo da série</td><td class="ok">Sinal do slope correto</td><td class="warn">Magnitude do slope não conferida</td></tr>
+<tr><td><b>Tremor</b></td><td>Potência na banda 3–12 Hz</td><td class="warn">Só comparação relativa de banda</td><td class="bad">Frequência e amplitude não recuperadas; ver alerta abaixo</td></tr>
+<tr><td><b>Assimetria</b></td><td>(E−D)/média entre lados</td><td class="ok">Sinal certo (lado mais fraco)</td><td class="bad">Qualquer valor clínico; corte depende da Pamela</td></tr></table>
+<h3>Exemplo real do pipeline (sessão simulada, 8 repetições por lado)</h3>
+<img src="fig_sessao.svg" style="width:100%">
+<div class="two"><div class="box g"><b>Resultado:</b> o pipeline recuperou ROM de 94,6° (injetado 95°) e 71,8° (injetado 72°), contou 8 reps nos dois lados e apontou assimetria de ROM de <b>27%</b>, com fadiga maior no lado direito (slope −11,2 vs −7,1).</div>
+<div class="box o"><b>Alerta:</b> nesta simulação o lado com <i>mais</i> tremor injetado saiu com <i>menos</i> potência de tremor. Indício de que a métrica mistura energia do movimento voluntário. Precisa investigar antes de confiar nela.</div></div>
+<div class="foot"><span>MoveSense · status 22/10/2026</span><span>4</span></div></div>
+
+<!-- 4 PROGRESSO -->
+<div class="page"><h2>4. Progresso: a escada de validação</h2><p class="sub">Plano em 11 degraus (Approach B → A → C)</p>
+<svg viewBox="0 0 700 300" width="100%" font-family="Helvetica,Arial" font-size="11">
+<g id="s"></g>
+<text x="0" y="14" font-weight="700" font-size="12">Status por degrau</text>
+<g transform="translate(0,26)">
+<rect width="700" height="22" rx="11" fill="#e2e8f0"/><rect width="437" height="22" rx="11" fill="#16a34a"/><rect x="437" width="190" height="22" fill="#f59e0b"/><rect x="627" width="73" height="22" rx="11" fill="#94a3b8"/>
+<text x="218" y="15" fill="#fff" text-anchor="middle" font-weight="700">8 feitos</text><text x="532" y="15" fill="#fff" text-anchor="middle" font-weight="700">3 pulados</text><text x="663" y="15" fill="#fff" text-anchor="middle" font-weight="700">1 aberto</text></g>
+<g font-size="10.5" transform="translate(0,72)">
+<text y="0">✔ 1 Calibração de bias do giroscópio</text><text y="18">✔ 2 Filtro complementar (acel + giro)</text><text y="36">✔ 3 ROM</text><text y="54">✔ 4 Contagem de repetições</text><text y="72">✔ 5 Fadiga</text><text y="90">✔ 6 Dado sintético + teste de integração</text><text y="108">✔ 9 Testes automatizados</text><text y="126">✔ 10 Relatório do Approach B</text>
+<text x="360" y="0" fill="#b45309">⏭ 7a Validar ROM contra VICON (dataset pago)</text><text x="360" y="18" fill="#b45309">⏭ 7b Validar assimetria (StrengthSense, restrito)</text><text x="360" y="36" fill="#b45309">⏭ 8 Rodar nos datasets reais (N/A sem 7a/7b)</text>
+<text x="360" y="72" fill="#dc2626" font-weight="700">⏳ 11 Fechar 5 perguntas do protocolo com a Pamela</text></g></svg>
+<h3>Crescimento da base de testes</h3>
+<svg viewBox="0 0 700 150" width="100%" font-family="Helvetica,Arial" font-size="11">
+<g><rect x="40" y="120" width="0" height="0"/>
+<rect x="60" y="64" width="90" height="56" fill="#93c5fd"/><text x="105" y="58" text-anchor="middle" font-weight="700">11</text><text x="105" y="138" text-anchor="middle">03/set</text>
+<rect x="210" y="46" width="90" height="74" fill="#60a5fa"/><text x="255" y="40" text-anchor="middle" font-weight="700">24</text><text x="255" y="138" text-anchor="middle">24/set</text>
+<rect x="360" y="21" width="90" height="99" fill="#3b82f6"/><text x="405" y="15" text-anchor="middle" font-weight="700">36</text><text x="405" y="138" text-anchor="middle">01/out</text>
+<rect x="510" y="2" width="90" height="118" fill="#1d4ed8"/><text x="555" y="-2" text-anchor="middle" font-weight="700" dy="14" fill="#fff">51</text><text x="555" y="138" text-anchor="middle">22/out</text></g></svg>
+<h3>Linha do tempo</h3>
+<table><tr><th>Data</th><th>Marco</th></tr>
+<tr><td>03/09</td><td>Scaffold, pesquisa de mercado, design doc aprovado, revisão de engenharia (achou bugs de BLE e a ausência de ROM/fadiga)</td></tr>
+<tr><td>10–11/09</td><td>Apresentação HTML de 10 slides e repo público no GitHub</td></tr>
+<tr><td>24/09</td><td>Degraus 1–6: as 5 métricas e o teste de integração sintético</td></tr>
+<tr><td>01/10</td><td>Reorganização em camadas, calibração adaptativa, validação, ingestão BLE, sync por RTT, revisão do firmware; datasets reais descartados</td></tr>
+<tr><td>22/10</td><td>Firmware com característica de sync (não compilado); push de 12 commits</td></tr></table>
+<div class="foot"><span>MoveSense · status 22/10/2026</span><span>5</span></div></div>
+
+<!-- 5 RISCOS -->
+<div class="page"><h2>5. Riscos e o que ainda é incerto</h2><p class="sub">Ordenados por impacto</p>
+<table><tr><th>#</th><th>Risco</th><th>Impacto</th><th>Mitigação / próximo passo</th></tr>
+<tr><td>1</td><td><b>Firmware nunca compilado nem testado em hardware</b> (incluindo o sync novo)</td><td class="bad">Alto</td><td>Compilar, gravar nos 2 ESP32, capturar 1 minuto parado</td></tr>
+<tr><td>2</td><td><b>Sincronismo dos dois nós.</b> O piso do erro é ~RTT/2 (alguns ms em BLE); assume atraso simétrico</td><td class="bad">Alto</td><td>Medir o erro real; se ruim, avaliar ESP-NOW nó-a-nó</td></tr>
+<tr><td>3</td><td><b>Nenhuma validação com dado real.</b> Datasets pagos/restritos</td><td class="bad">Alto</td><td>Captura própria com a Pamela; ideal: referência (goniômetro ou vídeo) na mesma sessão</td></tr>
+<tr><td>4</td><td>Tremor mistura energia do movimento voluntário (observado na simulação)</td><td class="warn">Médio</td><td>Investigar e corrigir antes de usar clinicamente</td></tr>
+<tr><td>5</td><td>Limiares de repetição calibrados só com sinal simulado</td><td class="warn">Médio</td><td>Recalibrar com os primeiros dados reais</td></tr>
+<tr><td>6</td><td>Demanda comprovada? A Pamela reagiu bem, mas é interesse verbal</td><td class="warn">Médio</td><td>Uso real em sessões é o teste de demanda</td></tr>
+<tr><td>7</td><td>Perda de pacote BLE e desconexão durante sessão</td><td class="warn">Médio</td><td>Já detectamos via seq_num; falta política de descarte/reconexão</td></tr>
+<tr><td>8</td><td>Dados de paciente: consentimento e retenção fora do escopo do protótipo</td><td class="warn">Médio</td><td>Definir antes de capturar paciente real; repo é público, nunca versionar dado bruto</td></tr>
+<tr><td>9</td><td>Tolerância de sync por métrica e critério de falha do Approach B não definidos</td><td>Baixo</td><td>Definir após os primeiros dados reais</td></tr></table>
+<div class="box"><b>Mercado em uma linha:</b> DorsaVi ~US$1,5 mil + assinatura mensal; Kinvent e Notch na faixa de centenas a poucos milhares de dólares; VALD até ~US$12 mil; Delsys ~US$69–111 mil. O hardware do MoveSense (2 ESP32 + 2 MPU6050) é uma fração disso. Concorrente conceitual mais próximo: RunScribe (simetria de corrida, só pé).</div>
+<div class="foot"><span>MoveSense · status 22/10/2026</span><span>6</span></div></div>
+
+<!-- 6 FALTA -->
+<div class="page"><h2>6. O que falta fazer</h2><p class="sub">Duas frentes independentes agora, depois a captura</p>
+<svg viewBox="0 0 700 170" width="100%" font-family="Helvetica,Arial" font-size="11">
+<defs><marker id="b" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0L8,4L0,8z" fill="#475569"/></marker></defs>
+<rect x="0" y="10" width="200" height="60" rx="10" fill="#7c3aed"/><text x="100" y="35" fill="#fff" text-anchor="middle" font-weight="700">A. Pamela responde</text><text x="100" y="52" fill="#fff" text-anchor="middle" font-size="10">5 perguntas de protocolo</text>
+<rect x="0" y="95" width="200" height="60" rx="10" fill="#2563eb"/><text x="100" y="120" fill="#fff" text-anchor="middle" font-weight="700">B. Firmware em hardware</text><text x="100" y="137" fill="#fff" text-anchor="middle" font-size="10">compilar, gravar, testar sync</text>
+<rect x="290" y="50" width="190" height="70" rx="10" fill="#f97316"/><text x="385" y="80" fill="#fff" text-anchor="middle" font-weight="700">C. Captura bilateral real</text><text x="385" y="98" fill="#fff" text-anchor="middle" font-size="10">Approach A, 1+ sessão</text>
+<rect x="540" y="50" width="160" height="70" rx="10" fill="#16a34a"/><text x="620" y="80" fill="#fff" text-anchor="middle" font-weight="700">D. Validação + artigo</text><text x="620" y="98" fill="#fff" text-anchor="middle" font-size="10">rubrica por métrica</text>
+<path d="M200 40L290 70" stroke="#475569" stroke-width="2" marker-end="url(#b)" fill="none"/><path d="M200 125L290 100" stroke="#475569" stroke-width="2" marker-end="url(#b)" fill="none"/><path d="M480 85L540 85" stroke="#475569" stroke-width="2" marker-end="url(#b)" fill="none"/></svg>
+<table><tr><th>#</th><th>Tarefa</th><th>Responsável</th><th>Depende de</th><th>Prioridade</th></tr>
+<tr><td>1</td><td>Responder as 5 perguntas de protocolo (movimento, série, local do bracelete, corte de assimetria, repouso de 2 s) e informar nº/perfil de voluntários</td><td>Pamela</td><td>nada</td><td class="bad">P0</td></tr>
+<tr><td>2</td><td>Compilar o firmware, gravar nos 2 nós, testar pacote, MTU e sync</td><td>João</td><td>hardware em mãos</td><td class="bad">P0</td></tr>
+<tr><td>3</td><td>Script do hub: conectar nos 2 nós, rodar ~100 pings de sync, gravar sessão</td><td>João</td><td>2</td><td class="bad">P0</td></tr>
+<tr><td>4</td><td>Medir o erro real de sincronismo entre os nós</td><td>João</td><td>2, 3</td><td class="warn">P1</td></tr>
+<tr><td>5</td><td>Primeira captura bilateral com referência (goniômetro/vídeo) na mesma sessão</td><td>João + Pamela</td><td>1, 2, 3</td><td class="bad">P0</td></tr>
+<tr><td>6</td><td>Recalibrar limiares de repetição e investigar a métrica de tremor com dado real</td><td>João</td><td>5</td><td class="warn">P1</td></tr>
+<tr><td>7</td><td>Pamela registra "plausível / não bate" para cada métrica</td><td>Pamela</td><td>5</td><td class="bad">P0</td></tr>
+<tr><td>8</td><td>Definir consentimento e retenção de dados de paciente</td><td>Grupo</td><td>antes de 5 com paciente</td><td class="warn">P1</td></tr>
+<tr><td>9</td><td>Backlog: suavidade (SPARC), variabilidade entre reps, timing, sincronia bilateral, movimento compensatório; ML de anomalia</td><td>João</td><td>dados reais</td><td>P2/P3</td></tr></table>
+<div class="box g"><b>Potencial de artigo:</b> par bilateral de baixo custo com sync por RTT e validação clínica com fisioterapia é publicável (há precedentes parciais: Romiumeter, GonioPi, exoesqueleto ESP32 bilateral). O diferencial seria a combinação bilateral + as 5 métricas + validação clínica. Isso só existe depois do item 5 e 7.</div>
+<div class="foot"><span>MoveSense · status 22/10/2026</span><span>7</span></div></div>
+
+<!-- 7 DECISOES -->
+<div class="page"><h2>7. Decisões tomadas e o porquê</h2><p class="sub">Para ninguém reabrir o que já foi discutido</p>
+<table><tr><th>Decisão</th><th>Porquê</th></tr>
+<tr><td>Sequência B → A → C (validar lógica, depois MVP bilateral, depois hub/dashboard)</td><td>Reduz risco técnico antes de gastar tempo da Pamela; plataforma completa antes de validar demanda é red flag</td></tr>
+<tr><td>Protocolo estreito (flexão de cotovelo), métricas largas (as 5 juntas)</td><td>Compartilham a mesma fusão de sensor; o artigo precisa do conjunto completo</td></tr>
+<tr><td>Filtro complementar em vez de Madgwick</td><td>1 grau de liberdade não justifica quaternion completo; Madgwick fica como upgrade futuro</td></tr>
+<tr><td>Sync por RTT via hub (ping-pong)</td><td>Mantido sem dado que prove falha; ESP-NOW nó-a-nó só se o RTT não performar</td></tr>
+<tr><td>Calibração de bias por nó antes de cada sessão (2 s parado)</td><td>Sem isso a assimetria pode medir diferença de hardware, não de paciente</td></tr>
+<tr><td>Detecção de repetições adaptativa</td><td>Limiares fixos contaram 8 reps em vez de 5 com tremor forte</td></tr>
+<tr><td>Pular datasets públicos (IEEE DataPort, StrengthSense, Mendeley)</td><td>Pagos, restritos à Europa ou sem dado bruto</td></tr>
+<tr><td>Repo público</td><td>Escolha explícita; por isso: sem dado de paciente no repositório</td></tr></table>
+<h3>Bugs reais já achados e corrigidos</h3>
+<ul><li>Pacote BLE de 30 bytes excedia os 20 bytes padrão e truncava gy/gz em silêncio → MTU 247.</li>
+<li>Contador de sequência de 8 bits dava a volta a cada 2,55 s → 16 bits.</li>
+<li>Gyro em rad/s no fio e deg/s na análise: sem conversão, o ângulo sairia ~57× menor.</li>
+<li>Jitter de amostragem no loop do firmware (perdia a fase) → fase fixa.</li>
+<li>Tremor gerava repetições falsas → distância mínima e calibração adaptativa.</li></ul>
+<h3>Para onde olhar</h3>
+<table><tr><td>github.com/jhlr/movesense</td><td>código, testes, docs</td></tr>
+<tr><td>docs/designs/…v0-wearable-bilateral.md</td><td>design doc aprovado</td></tr>
+<tr><td>docs/2026-10-01-perguntas-pamela.md</td><td>as 5 perguntas</td></tr>
+<tr><td>docs/2026-10-01-approach-b-relatorio.md</td><td>validação sintética detalhada</td></tr>
+<tr><td>REPO_STATE.md / TODOS.md</td><td>escada e backlog</td></tr></table>
+<div class="foot"><span>MoveSense · status 22/10/2026</span><span>8</span></div></div>
+</body></html>
